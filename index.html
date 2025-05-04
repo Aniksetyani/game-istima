@@ -764,6 +764,50 @@
             showNextSentence();
         }
 
+        // Fungsi untuk memutar audio menggunakan Web Speech API
+function playSentenceAudio() {
+    if ('speechSynthesis' in window) {
+        if (replayCount >= maxReplays) {
+            feedbackElement.textContent = "Batas pemutaran ulang tercapai. Gunakan petunjuk atau tampilkan teks.";
+            revealButton.style.display = 'inline-block';
+            return;
+        }
+
+        const wordIndex = (currentLevel - 1) * 5 + currentSentenceIndex;
+        const sentence = sentences[wordIndex];
+
+        const utterance = new SpeechSynthesisUtterance(sentence.arabic);
+        utterance.lang = 'ar-SA';
+        utterance.rate = 0.8;
+
+        // Tambahkan event handler untuk error (jika ada masalah saat sintesis)
+        utterance.onerror = function(event) {
+            console.error('Terjadi kesalahan saat memutar audio:', event);
+            feedbackElement.textContent = 'Maaf, terjadi masalah saat memutar suara.';
+        };
+
+        window.speechSynthesis.speak(utterance);
+
+        replayCount++;
+        replayCountElement.textContent = `Pemutaran: ${replayCount}/${maxReplays}`;
+
+        soundIndicator.style.opacity = '1';
+        soundIndicator.style.animation = 'pulse 0.8s ease-out';
+
+        setTimeout(() => {
+            soundIndicator.style.opacity = '0';
+            soundIndicator.style.animation = 'none';
+        }, 800);
+
+        if (replayCount >= maxReplays) {
+            revealButton.style.display = 'inline-block';
+        }
+    } else {
+        console.error('Web Speech API tidak didukung di browser ini.');
+        feedbackElement.textContent = 'Maaf, fitur suara tidak didukung di perangkat ini.';
+    }
+}
+        
         // Event listeners
         audioPlayer.addEventListener('click', playSentenceAudio);
         checkButton.addEventListener('click', checkAnswer);
